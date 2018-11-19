@@ -62,7 +62,7 @@ public class UserRedPacketServiceImpl implements UserRedPacketService {
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRED)
     public int grapRedPacketForVersion(long redPacketId,long userId){
-        /** 非重入锁-由于版本号限制存在红包抢不完情况 */
+        /** 非重入锁-由于版本号限制存在红包抢不完情况
         // 获取红包信息
         RedPacket redPacket=redPacketDao.getRedPacket(redPacketId);
         int oldVersion=redPacket.getVersion();
@@ -84,5 +84,36 @@ public class UserRedPacketServiceImpl implements UserRedPacketService {
             return result;
         }
         return FAILED;
+         */
+        //记录业务处理开始时间
+        long start=System.currentTimeMillis();
+        //无限循环,等待成功或时间满100毫秒
+        while (true) {
+            //获取循环当前时间
+            long end=System.currentTimeMillis();
+            // 如果业务处理超时则返回失败
+            if(end-start>100) return FAILED;
+            // 获取红包信息
+            RedPacket redPacket=redPacketDao.getRedPacket(redPacketId);
+            // 保存当前红包version
+            int oldVersion=redPacket.getVersion();
+            // 获取红包库存
+            int stock=redPacket.getStock();
+            if(stock>0){
+                // 尝试更新红包库存
+                int update=redPacketDao.decreaseRedPacketForVersion(redPacketId,oldVersion);
+                if(0==update) continue;
+                UserRedPacket userRedPacket=new UserRedPacket();
+                userRedPacket.setUserId(userId);
+                userRedPacket.setRedPacketId(redPacketId);
+                userRedPacket.setAmount(redPacket.getUnitAmount());
+                userRedPacket.setNote("RedPacket-"+redPacketId);
+                // 记录红包信息
+                int result=userRedPacketDao.grapRedPacket(userRedPacket);
+                return result;
+            }else{
+                return FAILED;
+            }
+        }
     }
 }
