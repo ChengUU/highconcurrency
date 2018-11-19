@@ -14,7 +14,8 @@
                 // jQuery POST请求,请注意这是异步请求
                 $.post({
                     //请求id为1的红包
-                    url:"./userRedPacket/grapRedPacket.do?redPacketId=1&userId="+i,
+                    //url:"./userRedPacket/grapRedPacket.do?redPacketId=1&userId="+i,
+                    url:"./userRedPacket/grapRedPacketForVersion.do?redPacketId=1&userId="+i,
                     success:function(result){}
                 });
             }

@@ -1,6 +1,7 @@
 package com.sgc.dao;
 
 import com.sgc.pojo.RedPacket;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,5 +22,12 @@ public interface RedPacketDao {
      */
     public int decreaseRedPacket(long id);
 
+    /**
+     * 使用排他锁查询红包信息
+     * @param id 红包ID
+     * @return 受影响数据条数
+     */
     public RedPacket getRedPacketForUpdate(long id);
+
+    public int decreaseRedPacketForVersion(@Param("id")long id,@Param("version") int version);
 }

@@ -8,4 +8,12 @@ public interface UserRedPacketService {
      * @return
      */
     public int grapRedPacket(long redPacketId,long userId);
+
+    /**
+     * 通过增加版本号并发处理
+     * @param redPacketId
+     * @param userId
+     * @return
+     */
+    public int grapRedPacketForVersion(long redPacketId,long userId);
 }

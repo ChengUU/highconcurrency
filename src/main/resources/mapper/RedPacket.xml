@@ -21,4 +21,11 @@
         from t_red_packet where id=#{id} for update
     </select>
 
+    <!-- 使用CAS原理实现并发处理: 共享锁 -->
+    <update id="decreaseRedPacketForVersion">
+        update t_red_packet
+        set stock=stock-1,version=version+1
+        where id=#{id} and version=#{version}
+    </update>
+
 </mapper>

@@ -28,4 +28,16 @@ public class UserRedPacketController {
         return retMap;
     }
 
+    @RequestMapping("/grapRedPacketForVersion")
+    @ResponseBody
+    public Map<String,Object> grapRedPacketForVersion(long redPacketId,long userId){
+        //抢红包
+        int result=userRedPacketService.grapRedPacketForVersion(redPacketId,userId);
+        Map<String,Object> response=new HashMap<>();
+        boolean flag=result>0;
+        response.put("success",flag);
+        response.put("message",flag?"抢红包成功":"抢红包失败");
+        return response;
+    }
+
 }

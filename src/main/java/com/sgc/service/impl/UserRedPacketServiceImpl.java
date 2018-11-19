@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+
 @Service
 public class UserRedPacketServiceImpl implements UserRedPacketService {
     // 失败
@@ -47,6 +48,39 @@ public class UserRedPacketServiceImpl implements UserRedPacketService {
 
             // 将红包信息存入数据库
             int result=userRedPacketDao.grapRedPacket(userRedPacket);
+            return result;
+        }
+        return FAILED;
+    }
+
+    /**
+     * 通过共享锁实现并发处理
+     * @param redPacketId
+     * @param userId
+     * @return
+     */
+    @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRED)
+    public int grapRedPacketForVersion(long redPacketId,long userId){
+        /** 非重入锁-由于版本号限制存在红包抢不完情况 */
+        // 获取红包信息
+        RedPacket redPacket=redPacketDao.getRedPacket(redPacketId);
+        int oldVersion=redPacket.getVersion();
+        int stock=redPacket.getStock();
+        if(stock>0){
+            // 再次传入线程保存的version值给sql判断,是否有其他线程更改过数据
+            int update=redPacketDao.decreaseRedPacketForVersion(redPacketId,oldVersion);
+
+            if(update==0) return FAILED;
+            UserRedPacket userRedPacket=new UserRedPacket();
+            userRedPacket.setUserId(userId);
+            userRedPacket.setRedPacketId(redPacketId);
+            userRedPacket.setAmount(redPacket.getUnitAmount());
+            userRedPacket.setNote("redpacket-"+redPacketId);
+
+            //将红包信息写入红包记录表
+            int result=userRedPacketDao.grapRedPacket(userRedPacket);
+
             return result;
         }
         return FAILED;
