@@ -85,9 +85,10 @@ public class UserRedPacketServiceImpl implements UserRedPacketService {
         }
         return FAILED;
          */
-        //记录业务处理开始时间
+        // 非重入锁bug更正方法1: 对重复处理请求时间进行限制
+        // 记录业务处理开始时间
         long start=System.currentTimeMillis();
-        //无限循环,等待成功或时间满100毫秒
+        // 无限循环,等待成功或时间满100毫秒
         while (true) {
             //获取循环当前时间
             long end=System.currentTimeMillis();
