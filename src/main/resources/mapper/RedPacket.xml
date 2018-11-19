@@ -14,7 +14,7 @@
         update t_red_packet set stock=stock-1 where id=#{id}
     </update>
 
-    <!-- 排他锁 -->
+    <!-- 并发处理: 排他锁 -->
     <select id="getRedPacketForUpdate" parameterType="long"
             resultType="com.sgc.pojo.RedPacket">
         select id,user_id as userId,amount,send_date as sendDate,total,unit_amount as unitAmount,stock,version,note

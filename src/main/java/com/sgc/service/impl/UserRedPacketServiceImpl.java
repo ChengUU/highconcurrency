@@ -32,7 +32,9 @@ public class UserRedPacketServiceImpl implements UserRedPacketService {
     @Transactional(isolation=Isolation.READ_COMMITTED,propagation=Propagation.REQUIRED)
     public int grapRedPacket(long redPacketId, long userId) {
         //根据红包id获取红包实例对象
-        RedPacket redPacket=redPacketDao.getRedPacket(redPacketId);
+        // RedPacket redPacket=redPacketDao.getRedPacket(redPacketId);
+        // 使用共享锁根据红包ID获取红包
+        RedPacket redPacket=redPacketDao.getRedPacketForUpdate(redPacketId);
         //获取红包剩余数量
         int leftRedPacket=redPacket.getStock();
         if(leftRedPacket>0){

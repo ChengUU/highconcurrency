@@ -20,4 +20,6 @@ public interface RedPacketDao {
      * @return 更新记录条数
      */
     public int decreaseRedPacket(long id);
+
+    public RedPacket getRedPacketForUpdate(long id);
 }
