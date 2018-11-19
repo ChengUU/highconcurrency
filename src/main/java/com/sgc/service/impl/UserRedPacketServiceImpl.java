@@ -62,29 +62,33 @@ public class UserRedPacketServiceImpl implements UserRedPacketService {
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRED)
     public int grapRedPacketForVersion(long redPacketId,long userId){
-        /** 非重入锁-由于版本号限制存在红包抢不完情况
+        // 非重入锁bug更正方法2: 记录重复业务请求次数
         // 获取红包信息
-        RedPacket redPacket=redPacketDao.getRedPacket(redPacketId);
-        int oldVersion=redPacket.getVersion();
-        int stock=redPacket.getStock();
-        if(stock>0){
-            // 再次传入线程保存的version值给sql判断,是否有其他线程更改过数据
-            int update=redPacketDao.decreaseRedPacketForVersion(redPacketId,oldVersion);
+         for(int i=0;i<3;i++) {
+             RedPacket redPacket = redPacketDao.getRedPacket(redPacketId);
+             int oldVersion = redPacket.getVersion();
+             int stock = redPacket.getStock();
+             if (stock > 0) {
+                 // 再次传入线程保存的version值给sql判断,是否有其他线程更改过数据
+                 int update = redPacketDao.decreaseRedPacketForVersion(redPacketId, oldVersion);
 
-            if(update==0) return FAILED;
-            UserRedPacket userRedPacket=new UserRedPacket();
-            userRedPacket.setUserId(userId);
-            userRedPacket.setRedPacketId(redPacketId);
-            userRedPacket.setAmount(redPacket.getUnitAmount());
-            userRedPacket.setNote("redpacket-"+redPacketId);
+                 if (update == 0) continue;
+                 UserRedPacket userRedPacket = new UserRedPacket();
+                 userRedPacket.setUserId(userId);
+                 userRedPacket.setRedPacketId(redPacketId);
+                 userRedPacket.setAmount(redPacket.getUnitAmount());
+                 userRedPacket.setNote("redpacket-" + redPacketId);
 
-            //将红包信息写入红包记录表
-            int result=userRedPacketDao.grapRedPacket(userRedPacket);
+                 //将红包信息写入红包记录表
+                 int result = userRedPacketDao.grapRedPacket(userRedPacket);
 
-            return result;
-        }
-        return FAILED;
-         */
+                 return result;
+             }else {
+                 return FAILED;
+             }
+         }
+         return FAILED;
+    /**
         // 非重入锁bug更正方法1: 对重复处理请求时间进行限制
         // 记录业务处理开始时间
         long start=System.currentTimeMillis();
@@ -116,5 +120,6 @@ public class UserRedPacketServiceImpl implements UserRedPacketService {
                 return FAILED;
             }
         }
+    */
     }
 }
